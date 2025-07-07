@@ -1,7 +1,9 @@
 package com.fiarahantsika.backend.users.controllers;
 
+import com.fiarahantsika.backend.common.exception.ResourceNotFoundException;
 import com.fiarahantsika.backend.users.dto.*;
 import com.fiarahantsika.backend.users.services.IUserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,7 +11,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final IUserService svc;
-    public AuthController(IUserService s){ this.svc = s; }
+
+    public AuthController(IUserService s){
+        this.svc = s;
+    }
 
     @PostMapping("/register")
     public UserDTO register(@RequestBody RegisterRequest r){
@@ -22,9 +27,15 @@ public class AuthController {
     }
 
     @PostMapping("/password-reset/request")
-    public ResponseEntity<?> requestReset(@RequestBody PasswordResetRequest r){
-        svc.initiatePasswordReset(r);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<String> requestReset(@RequestBody PasswordResetRequest r){
+        try {
+            svc.initiatePasswordReset(r);
+            return ResponseEntity.ok("Mail envoyé si l’adresse existe.");
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("Cette adresse n’est pas reconnue.");
+        }
     }
 
     @PostMapping("/password-reset/confirm")
