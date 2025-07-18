@@ -1,0 +1,9 @@
+package com.fiarahantsika.backend.catalog.repositories;
+
+import com.fiarahantsika.backend.catalog.entities.StockEntry;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface StockEntryRepository extends JpaRepository<StockEntry, Long> {
+    List<StockEntry> findByProductId(Long productId);
+}
