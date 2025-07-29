@@ -22,16 +22,31 @@ public class StockAlertServiceImpl implements IStockAlertService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<StockAlertDTO> getAlerts() {
-        return alertRepo.findByResolvedFalse().stream().map(alert -> {
-            Product p = alert.getProduct();
-            return new StockAlertDTO(
-                    p.getId(),
-                    p.getName(),
-                    p.getCurrentStock(),
-                    p.getSeuil()
-            );
-        }).toList();
+    public List<StockAlertDTO> getAlerts(Boolean resolved) {
+        List<StockAlert> alerts;
+        if (resolved == null) {
+            alerts = alertRepo.findAll();
+        } else if (resolved) {
+            alerts = alertRepo.findByResolvedTrue();
+        } else {
+            alerts = alertRepo.findByResolvedFalse();
+        }
+
+        return alerts.stream()
+                .map(alert -> {
+                    Product p = alert.getProduct();
+                    return new StockAlertDTO(
+                            alert.getId(),
+                            p.getId(),
+                            p.getName(),
+                            p.getCurrentStock(),
+                            p.getSeuil(),
+                            alert.getCreatedAt(),
+                            alert.getResolved(),
+                            alert.getResolvedAt()
+                    );
+                })
+                .toList();
     }
 
     @Override
@@ -55,4 +70,30 @@ public class StockAlertServiceImpl implements IStockAlertService {
                     alertRepo.save(alert);
                 });
     }
+
+    @Override
+    @Transactional
+    public StockAlertDTO setResolved(Long alertId, boolean flag) {
+        StockAlert alert = alertRepo.findById(alertId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Aucune alerte trouvée pour l’ID " + alertId));
+
+        alert.setResolved(flag);
+        alert.setResolvedAt(flag ? Instant.now() : null);
+        return toDto(alertRepo.save(alert));
+    }
+
+    private StockAlertDTO toDto(StockAlert e) {
+        return new StockAlertDTO(
+                e.getId(),
+                e.getProduct().getId(),
+                e.getProduct().getName(),
+                e.getProduct().getCurrentStock(),
+                e.getProduct().getSeuil(),
+                e.getCreatedAt(),
+                e.getResolved(),
+                e.getResolvedAt()
+        );
+    }
+
 }

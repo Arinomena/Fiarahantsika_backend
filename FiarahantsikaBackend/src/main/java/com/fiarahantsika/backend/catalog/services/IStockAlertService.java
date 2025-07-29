@@ -4,7 +4,11 @@ import com.fiarahantsika.backend.catalog.dto.StockAlertDTO;
 import java.util.List;
 
 public interface IStockAlertService {
-    List<StockAlertDTO> getAlerts();
+    List<StockAlertDTO> getAlerts(Boolean resolved);
+    StockAlertDTO setResolved(Long productId, boolean flag);
     void checkAndCreateAlert(Long productId, Integer currentStock, Integer seuil);
     void resolveAlert(Long productId);
+    default void unresolveAlert(Long productId) {
+        setResolved(productId, false);
+    }
 }
