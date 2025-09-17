@@ -9,9 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/invoices")
@@ -23,82 +21,65 @@ public class InvoiceController {
     @PostMapping
     public ResponseEntity<?> create(@RequestBody InvoiceDTO dto) {
         try {
-            if (dto == null) return ResponseEntity.badRequest().body(error("Données requises manquantes."));
             InvoiceDTO created = invoiceService.create(dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(body(created, "Facture créée."));
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Données invalides");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la création de la facture."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> get(@PathVariable Long id) {
         try {
-            if (id == null || id <= 0) return ResponseEntity.badRequest().body(error("Identifiant invalide."));
             InvoiceDTO dto = invoiceService.getById(id);
-            if (dto == null) return ResponseEntity.status(404).body(error("Facture introuvable."));
-            return ResponseEntity.ok(body(dto, "Facture récupérée."));
+            if (dto == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Facture introuvable");
+            }
+            return ResponseEntity.ok(dto);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la récupération de la facture."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @GetMapping("/order/{orderId}")
     public ResponseEntity<?> listByOrder(@PathVariable Long orderId) {
         try {
-            if (orderId == null || orderId <= 0) return ResponseEntity.badRequest().body(error("Identifiant de commande invalide."));
-            List<InvoiceDTO> data = invoiceService.listByOrder(orderId);
-            return ResponseEntity.ok(body(data, "Factures par commande récupérées."));
+            return ResponseEntity.ok(invoiceService.listByOrder(orderId));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la récupération des factures."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @GetMapping("/{invoiceId}/payments")
     public ResponseEntity<?> getPayments(@PathVariable Long invoiceId) {
         try {
-            if (invoiceId == null || invoiceId <= 0) return ResponseEntity.badRequest().body(error("Identifiant de facture invalide."));
-            List<PaymentDTO> data = invoiceService.getPayments(invoiceId);
-            return ResponseEntity.ok(body(data, "Paiements de la facture récupérés."));
+            return ResponseEntity.ok(invoiceService.getPayments(invoiceId));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la récupération des paiements."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @PostMapping("/{invoiceId}/payments")
-    public ResponseEntity<?> addPayment(@PathVariable Long invoiceId, @RequestParam BigDecimal amount) {
+    public ResponseEntity<?> addPayment(
+            @PathVariable Long invoiceId,
+            @RequestParam BigDecimal amount) {
         try {
-            if (invoiceId == null || invoiceId <= 0 || amount == null || amount.signum() <= 0)
-                return ResponseEntity.badRequest().body(error("Paramètres de paiement invalides."));
-            PaymentDTO created = invoiceService.addPayment(invoiceId, amount);
-            return ResponseEntity.status(201).body(body(created, "Paiement enregistré."));
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(404).body(error("Facture introuvable."));
+            return ResponseEntity.ok(invoiceService.addPayment(invoiceId, amount));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Montant invalide");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de l’enregistrement du paiement."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @GetMapping(path = { "", "/" })
     public ResponseEntity<?> listAll() {
         try {
-            List<InvoiceDTO> data = invoiceService.listAll();
-            return ResponseEntity.ok(body(data, "Liste des factures récupérée."));
+            return ResponseEntity.ok(invoiceService.listAll());
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la récupération des factures."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
-    }
-
-    private Map<String, Object> body(Object data, String message) {
-        Map<String, Object> m = new HashMap<>();
-        m.put("message", message);
-        m.put("data", data);
-        return m;
-    }
-
-    private Map<String, Object> error(String message) {
-        Map<String, Object> m = new HashMap<>();
-        m.put("message", message);
-        return m;
     }
 }

@@ -7,9 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/catalog/products")
@@ -21,81 +19,55 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<?> list(@RequestParam(required = false) String search) {
         try {
-            List<ProductDTO> data = service.getProducts(search);
-            return ResponseEntity.ok(body(data, "Liste des produits récupérée avec succès."));
+            return ResponseEntity.ok(service.getProducts(search));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la récupération des produits."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> get(@PathVariable Long id) {
         try {
-            if (id == null || id <= 0) {
-                return ResponseEntity.badRequest().body(error("Identifiant invalide."));
-            }
             ProductDTO dto = service.getProductById(id);
             if (dto == null) {
-                return ResponseEntity.status(404).body(error("Produit introuvable."));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Produit introuvable");
             }
-            return ResponseEntity.ok(body(dto, "Produit récupéré avec succès."));
+            return ResponseEntity.ok(dto);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la récupération du produit."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @PostMapping
     public ResponseEntity<?> create(@RequestBody ProductDTO dto) {
         try {
-            if (dto == null) {
-                return ResponseEntity.badRequest().body(error("Données manquantes ou invalides."));
-            }
             ProductDTO created = service.createProduct(dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(body(created, "Produit créé avec succès."));
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Données invalides");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la création du produit."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody ProductDTO dto) {
         try {
-            if (id == null || id <= 0 || dto == null) {
-                return ResponseEntity.badRequest().body(error("Paramètres invalides."));
-            }
-            ProductDTO updated = service.updateProduct(id, dto);
-            if (updated == null) {
-                return ResponseEntity.status(404).body(error("Produit à mettre à jour introuvable."));
-            }
-            return ResponseEntity.ok(body(updated, "Produit mis à jour avec succès."));
+            return ResponseEntity.ok(service.updateProduct(id, dto));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Données invalides");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la mise à jour du produit."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         try {
-            if (id == null || id <= 0) {
-                return ResponseEntity.badRequest().body(error("Identifiant invalide."));
-            }
             service.deleteProduct(id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la suppression du produit."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
-    }
-
-    private Map<String, Object> body(Object data, String message) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("message", message);
-        map.put("data", data);
-        return map;
-    }
-
-    private Map<String, Object> error(String message) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("message", message);
-        return map;
     }
 }

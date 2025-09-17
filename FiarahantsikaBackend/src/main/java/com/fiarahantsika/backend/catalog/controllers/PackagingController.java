@@ -5,6 +5,7 @@ import com.fiarahantsika.backend.catalog.services.IPackagingEntryService;
 import com.fiarahantsika.backend.catalog.services.IPackagingExitService;
 import com.fiarahantsika.backend.catalog.services.IPackagingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,147 +25,136 @@ public class PackagingController {
     @GetMapping
     public ResponseEntity<?> list() {
         try {
-            List<PackagingDTO> data = service.getAllPackagings();
-            return ResponseEntity.ok(body(data, "Liste des packagings récupérée avec succès."));
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Liste des packagings récupérée avec succès");
+            body.put("data", service.getAllPackagings());
+            return ResponseEntity.ok(body);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la récupération des packagings."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> get(@PathVariable Long id) {
         try {
-            if (id == null || id <= 0) {
-                return ResponseEntity.badRequest().body(error("Identifiant invalide."));
-            }
             PackagingDTO dto = service.getPackagingById(id);
             if (dto == null) {
-                return ResponseEntity.status(404).body(error("Packaging introuvable."));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Packaging introuvable");
             }
-            return ResponseEntity.ok(body(dto, "Packaging récupéré avec succès."));
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Packaging récupéré avec succès");
+            body.put("data", dto);
+            return ResponseEntity.ok(body);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la récupération du packaging."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @PostMapping
     public ResponseEntity<?> create(@RequestBody PackagingDTO dto) {
         try {
-            if (dto == null) {
-                return ResponseEntity.badRequest().body(error("Données manquantes ou invalides."));
-            }
             PackagingDTO created = service.createPackaging(dto);
-            return ResponseEntity.status(201).body(body(created, "Packaging créé avec succès."));
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Packaging créé avec succès");
+            body.put("data", created);
+            return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Données invalides");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la création du packaging."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody PackagingDTO dto) {
         try {
-            if (id == null || id <= 0 || dto == null) {
-                return ResponseEntity.badRequest().body(error("Paramètres invalides."));
-            }
-            PackagingDTO updated = service.updatePackaging(id, dto);
-            if (updated == null) {
-                return ResponseEntity.status(404).body(error("Packaging à mettre à jour introuvable."));
-            }
-            return ResponseEntity.ok(body(updated, "Packaging mis à jour avec succès."));
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Packaging mis à jour avec succès");
+            body.put("data", service.updatePackaging(id, dto));
+            return ResponseEntity.ok(body);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Données invalides");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la mise à jour du packaging."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         try {
-            if (id == null || id <= 0) {
-                return ResponseEntity.badRequest().body(error("Identifiant invalide."));
-            }
             service.deletePackaging(id);
-            return ResponseEntity.noContent().build();
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Packaging supprimé avec succès");
+            return ResponseEntity.ok(body);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la suppression du packaging."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @GetMapping("/{id}/entries")
     public ResponseEntity<?> listEntries(@PathVariable Long id) {
         try {
-            if (id == null || id <= 0) {
-                return ResponseEntity.badRequest().body(error("Identifiant de packaging invalide."));
-            }
-            List<PackagingEntryDTO> data = pkgEntryService.getEntries(id);
-            return ResponseEntity.ok(body(data, "Historique des entrées de packaging récupéré avec succès."));
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Liste des entrées récupérée avec succès");
+            body.put("data", pkgEntryService.getEntries(id));
+            return ResponseEntity.ok(body);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la récupération des entrées."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @PostMapping("/entries")
     public ResponseEntity<?> createEntry(@RequestBody CreatePackagingEntryRequest req) {
         try {
-            if (req == null) {
-                return ResponseEntity.badRequest().body(error("Données d’entrée manquantes ou invalides."));
-            }
-            PackagingEntryDTO created = pkgEntryService.recordEntry(req);
-            return ResponseEntity.status(201).body(body(created, "Entrée de packaging enregistrée avec succès."));
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Entrée de packaging enregistrée avec succès");
+            body.put("data", pkgEntryService.recordEntry(req));
+            return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Données invalides");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de l’enregistrement de l’entrée."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @GetMapping("/{id}/exits")
     public ResponseEntity<?> listExits(@PathVariable Long id) {
         try {
-            if (id == null || id <= 0) {
-                return ResponseEntity.badRequest().body(error("Identifiant de packaging invalide."));
-            }
-            List<PackagingExitDTO> data = pkgExitService.getExits(id);
-            return ResponseEntity.ok(body(data, "Historique des sorties de packaging récupéré avec succès."));
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Liste des sorties récupérée avec succès");
+            body.put("data", pkgExitService.getExits(id));
+            return ResponseEntity.ok(body);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la récupération des sorties."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @PostMapping("/exits")
     public ResponseEntity<?> createExitNoPath(@RequestBody CreatePackagingExitRequest req) {
         try {
-            if (req == null) {
-                return ResponseEntity.badRequest().body(error("Données de sortie manquantes ou invalides."));
-            }
-            PackagingExitDTO created = pkgExitService.recordExit(req);
-            return ResponseEntity.status(201).body(body(created, "Sortie de packaging enregistrée avec succès."));
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Sortie de packaging enregistrée avec succès");
+            body.put("data", pkgExitService.recordExit(req));
+            return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Données invalides");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de l’enregistrement de la sortie."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @PostMapping("/{id}/exits")
     public ResponseEntity<?> createExit(@PathVariable Long id, @RequestBody CreatePackagingExitRequest req) {
         try {
-            if (id == null || id <= 0 || req == null) {
-                return ResponseEntity.badRequest().body(error("Paramètres invalides pour la sortie."));
-            }
             CreatePackagingExitRequest corrected = new CreatePackagingExitRequest(id, req.quantity());
-            PackagingExitDTO created = pkgExitService.recordExit(corrected);
-            return ResponseEntity.status(201).body(body(created, "Sortie de packaging enregistrée avec succès."));
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Sortie de packaging enregistrée avec succès");
+            body.put("data", pkgExitService.recordExit(corrected));
+            return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Données invalides");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de l’enregistrement de la sortie."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
-    }
-
-    private Map<String, Object> body(Object data, String message) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("message", message);
-        map.put("data", data);
-        return map;
-    }
-
-    private Map<String, Object> error(String message) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("message", message);
-        return map;
     }
 }

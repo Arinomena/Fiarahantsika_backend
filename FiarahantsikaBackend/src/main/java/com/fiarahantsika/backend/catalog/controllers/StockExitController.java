@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,36 +22,28 @@ public class StockExitController {
     @PostMapping
     public ResponseEntity<?> recordExit(@RequestBody CreateStockExitRequest req) {
         try {
-            if (req == null) {
-                return ResponseEntity.badRequest().body(error("Données de sortie manquantes ou invalides."));
-            }
             StockExitDTO dto = stockExitService.recordExit(req);
-            return ResponseEntity.status(HttpStatus.CREATED).body(body(dto, "Sortie de stock enregistrée avec succès."));
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Sortie de stock enregistrée avec succès");
+            body.put("data", dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Données invalides");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de l’enregistrement de la sortie."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @GetMapping
     public ResponseEntity<?> listExits(@RequestParam(required = false) Long productId) {
         try {
-            List<StockExitDTO> data = stockExitService.getExits(productId);
-            return ResponseEntity.ok(body(data, "Liste des sorties de stock récupérée avec succès."));
+            List<StockExitDTO> exits = stockExitService.getExits(productId);
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Liste des sorties récupérée avec succès");
+            body.put("data", exits);
+            return ResponseEntity.ok(body);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la récupération des sorties."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
-    }
-
-    private Map<String, Object> body(Object data, String message) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("message", message);
-        map.put("data", data);
-        return map;
-    }
-
-    private Map<String, Object> error(String message) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("message", message);
-        return map;
     }
 }

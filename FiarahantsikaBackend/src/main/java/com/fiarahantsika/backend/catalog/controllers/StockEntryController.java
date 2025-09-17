@@ -22,36 +22,28 @@ public class StockEntryController {
     @PostMapping
     public ResponseEntity<?> recordEntry(@RequestBody CreateStockEntryRequest req) {
         try {
-            if (req == null) {
-                return ResponseEntity.badRequest().body(error("Données d’entrée manquantes ou invalides."));
-            }
             StockEntryDTO dto = stockEntryService.recordEntry(req);
-            return ResponseEntity.status(HttpStatus.CREATED).body(body(dto, "Entrée de stock enregistrée avec succès."));
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Entrée de stock enregistrée avec succès");
+            body.put("data", dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Données invalides");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de l’enregistrement de l’entrée."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
 
     @GetMapping
     public ResponseEntity<?> listEntries(@RequestParam(required = false) Long productId) {
         try {
-            List<StockEntryDTO> data = stockEntryService.getEntries(productId);
-            return ResponseEntity.ok(body(data, "Liste des entrées de stock récupérée avec succès."));
+            List<StockEntryDTO> entries = stockEntryService.getEntries(productId);
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Liste des entrées récupérée avec succès");
+            body.put("data", entries);
+            return ResponseEntity.ok(body);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(error("Erreur interne lors de la récupération des entrées."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
-    }
-
-    private Map<String, Object> body(Object data, String message) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("message", message);
-        map.put("data", data);
-        return map;
-    }
-
-    private Map<String, Object> error(String message) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("message", message);
-        return map;
     }
 }
