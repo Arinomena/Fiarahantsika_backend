@@ -69,7 +69,6 @@ public final class OrderMapper {
         return lines;
     }
 
-    /** Mappe Order → OrderDTO */
     public static OrderDTO toDto(Order o) {
         var items = o.getItems().stream()
                 .map(OrderMapper::itemToDto)

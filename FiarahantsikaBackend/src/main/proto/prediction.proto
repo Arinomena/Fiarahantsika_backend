@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package prediction;
+
+service PredictionService {
+  rpc Forecast (ForecastRequest) returns (ForecastResponse);
+  rpc Metrics (MetricsRequest) returns (MetricsResponse);
+}
+
+message ForecastRequest {
+  int32 product_id = 1;
+  int32 periods = 2;
+}
+
+message ForecastItem {
+  string date = 1;
+  double yhat = 2;
+  double yhat_lower = 3;
+  double yhat_upper = 4;
+}
+
+message ForecastResponse {
+  repeated ForecastItem forecasts = 1;
+}
+
+message MetricsRequest {
+  int32 top = 1;
+  int32 flop = 2;
+}
+
+message MetricItem {
+  int32 product_id = 1;
+  string product_name = 2;
+  double mae = 3;
+  double rmse = 4;
+}
+
+message MetricsResponse {
+  repeated MetricItem metrics = 1;
+}

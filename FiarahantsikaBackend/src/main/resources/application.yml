@@ -31,7 +31,12 @@ spring:
       ddl-auto: validate
     show-sql: false
 
+---
+grpc:
+  client:
+    predictionService:
+      address: static://localhost:50051
+      negotiationType: plaintext
+
 server:
-  port: 9000
-
-
+  port: 8080
