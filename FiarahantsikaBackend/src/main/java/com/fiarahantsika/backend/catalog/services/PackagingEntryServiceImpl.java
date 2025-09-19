@@ -9,7 +9,8 @@ import com.fiarahantsika.backend.catalog.repositories.PackagingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.time.Instant;
 import java.util.List;
 
@@ -62,5 +63,27 @@ public class PackagingEntryServiceImpl implements IPackagingEntryService {
                         e.getRemainingStock()
                 ))
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PackagingEntryDTO> getEntriesPage(Long packagingId, Pageable pageable) {
+        return (packagingId != null)
+                ? entryRepo.findByPackagingId(packagingId, pageable)
+                .map(e -> new PackagingEntryDTO(
+                        e.getId(),
+                        e.getPackaging().getId(),
+                        e.getQuantity(),
+                        e.getEntryDate(),
+                        e.getRemainingStock()
+                ))
+                : entryRepo.findAll(pageable)
+                .map(e -> new PackagingEntryDTO(
+                        e.getId(),
+                        e.getPackaging().getId(),
+                        e.getQuantity(),
+                        e.getEntryDate(),
+                        e.getRemainingStock()
+                ));
     }
 }

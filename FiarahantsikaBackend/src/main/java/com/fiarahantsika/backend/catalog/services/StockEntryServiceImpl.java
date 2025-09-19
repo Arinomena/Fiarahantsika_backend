@@ -9,7 +9,8 @@ import com.fiarahantsika.backend.catalog.repositories.StockEntryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -83,5 +84,29 @@ public class StockEntryServiceImpl implements IStockEntryService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<StockEntryDTO> getEntriesPage(Long productId, Pageable pageable) {
+        Page<StockEntry> pageResult = (productId != null)
+                ? entryRepo.findByProductId(productId, pageable)
+                : entryRepo.findAll(pageable);
+
+        return pageResult.map(e -> {
+            int groups         = e.getQuantity();
+            int sizePerGroup   = e.getProduct().getGroupSize();
+            int bottles        = groups * sizePerGroup;
+            int remainingStock = e.getProduct().getCurrentStock();
+
+            return new StockEntryDTO(
+                    e.getId(),
+                    e.getProduct().getId(),
+                    groups,
+                    bottles,
+                    e.getEntryDate(),
+                    remainingStock
+            );
+        });
     }
 }

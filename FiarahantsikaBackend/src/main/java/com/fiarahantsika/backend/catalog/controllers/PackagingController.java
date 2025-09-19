@@ -8,9 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -157,4 +159,39 @@ public class PackagingController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
         }
     }
+
+    @GetMapping("/entries/paged")
+    public ResponseEntity<?> listEntriesPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Long packagingId
+    ) {
+        try {
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Liste paginée des entrées récupérée avec succès");
+            body.put("content", pkgEntryService.getEntriesPage(packagingId, PageRequest.of(page, size)).getContent());
+            body.put("totalPages", pkgEntryService.getEntriesPage(packagingId, PageRequest.of(page, size)).getTotalPages());
+            return ResponseEntity.ok(body);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
+        }
+    }
+
+    @GetMapping("/exits/paged")
+    public ResponseEntity<?> listExitsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Long packagingId
+    ) {
+        try {
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Liste paginée des sorties récupérée avec succès");
+            body.put("content", pkgExitService.getExitsPage(packagingId, PageRequest.of(page, size)).getContent());
+            body.put("totalPages", pkgExitService.getExitsPage(packagingId, PageRequest.of(page, size)).getTotalPages());
+            return ResponseEntity.ok(body);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
+        }
+    }
+
 }

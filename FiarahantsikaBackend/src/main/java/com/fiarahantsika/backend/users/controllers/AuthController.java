@@ -36,7 +36,7 @@ public class AuthController {
             AuthResponse auth = svc.login(r);
             return ResponseEntity.ok(auth);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Identifiants invalides");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Nom d'utilisateur ou Mot de passe invalides");
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentification requise");
         } catch (Exception e) {

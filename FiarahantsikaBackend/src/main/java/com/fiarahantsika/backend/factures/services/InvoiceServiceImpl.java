@@ -13,7 +13,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -144,5 +145,11 @@ class InvoiceServiceImpl implements IInvoiceService {
         return paymentRepository.findByInvoiceId(invoiceId).stream()
                 .map(PaymentMapper::toDto) // ou ton appel statique
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<InvoiceDTO> getInvoicesPage(Pageable pageable) {
+        return invoiceRepository.findAll(pageable).map(InvoiceMapper::toDto);
     }
 }

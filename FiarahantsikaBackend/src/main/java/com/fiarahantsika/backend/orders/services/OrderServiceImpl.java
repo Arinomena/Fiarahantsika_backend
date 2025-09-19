@@ -1,18 +1,13 @@
 package com.fiarahantsika.backend.orders.services;
 
-import com.fiarahantsika.backend.catalog.dto.CreatePackagingExitRequest;
-import com.fiarahantsika.backend.catalog.dto.CreateStockEntryRequest;
 import com.fiarahantsika.backend.catalog.dto.CreateStockExitRequest;
 import com.fiarahantsika.backend.catalog.entities.Product;
 import com.fiarahantsika.backend.catalog.repositories.PackagingRepository;
 import com.fiarahantsika.backend.catalog.services.IStockEntryService;
 import com.fiarahantsika.backend.common.enums.ItemType;
 import com.fiarahantsika.backend.common.enums.OrderStatus;
-import com.fiarahantsika.backend.common.enums.PackagingFormat;
 import com.fiarahantsika.backend.orders.dto.CreateOrderRequest;
 import com.fiarahantsika.backend.orders.dto.OrderDTO;
-import com.fiarahantsika.backend.orders.dto.OrderItemRequest;
-import com.fiarahantsika.backend.common.enums.GroupType;
 import com.fiarahantsika.backend.orders.entities.Order;
 import com.fiarahantsika.backend.orders.entities.OrderItem;
 import com.fiarahantsika.backend.orders.mappers.OrderMapper;
@@ -26,6 +21,8 @@ import com.fiarahantsika.backend.catalog.repositories.ProductRepository;
 import com.fiarahantsika.backend.catalog.services.IStockExitService;
 import com.fiarahantsika.backend.catalog.services.IPackagingExitService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,7 +65,6 @@ public class OrderServiceImpl implements IOrderService {
         order.setUser(user);
         order.setClient(client);
 
-        // Délégation au mapper
         List<OrderItem> lines = OrderMapper.buildItems(
                 order,
                 req.getItems(),
@@ -119,7 +115,6 @@ public class OrderServiceImpl implements IOrderService {
             order.setClient(client);
         }
 
-        // clear + rebuild items
         order.getItems().clear();
         List<OrderItem> lines = OrderMapper.buildItems(
                 order,
@@ -134,7 +129,6 @@ public class OrderServiceImpl implements IOrderService {
         order.setTotal(total);
 
         Order saved = orderRepo.save(order);
-        // pas besoin de itemRepo.saveAll thanks cascade + orphanRemoval
         return OrderMapper.toDto(saved);
     }
 
@@ -144,6 +138,13 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<OrderDTO> getOrdersPage(Pageable pageable) {
+        return orderRepo.findAll(pageable).map(OrderMapper::toDto);
+    }
+
+
+    @Override
     public OrderDTO updateStatus(Long id, OrderStatus newStatus) {
         Order order = orderRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Commande introuvable : " + id));
@@ -151,7 +152,6 @@ public class OrderServiceImpl implements IOrderService {
         OrderStatus oldStatus = order.getStatus();
         order.setStatus(newStatus);
 
-        // 1) À la livraison, on débite uniquement le stock produit (groupSize inclus)
         if (oldStatus == OrderStatus.ENREGISTREE
                 && newStatus == OrderStatus.EN_COURS_DE_LIVRAISON) {
 
@@ -160,7 +160,6 @@ public class OrderServiceImpl implements IOrderService {
                         .orElseThrow(() -> new IllegalArgumentException(
                                 "Produit introuvable : " + i.getItemId()));
 
-                // on passe la "quantité de groupes" à sortir
                 int groupsToRemove = i.getItemType() == ItemType.PRODUCT
                         ? i.getQuantity()
                         : i.getQuantity() * prod.getGroupSize();
@@ -169,7 +168,6 @@ public class OrderServiceImpl implements IOrderService {
             });
         }
 
-        // 2) À l'annulation après (ou pendant) livraison, on réintègre uniquement le stock produit
         if ((oldStatus == OrderStatus.EN_COURS_DE_LIVRAISON || oldStatus == OrderStatus.LIVREE)
                 && newStatus == OrderStatus.ANNULEE) {
 
@@ -178,20 +176,17 @@ public class OrderServiceImpl implements IOrderService {
                         .orElseThrow(() -> new IllegalArgumentException(
                                 "Produit introuvable : " + i.getItemId()));
 
-                // nombre de bouteilles à restaurer
                 int bottlesToRestore = (i.getItemType() == ItemType.PRODUCT)
                         ? i.getQuantity()                         // 1 canette = 1 bouteille
                         : i.getQuantity() * prod.getGroupSize(); // 1 fardeau = groupSize bouteilles
 
-                // on met à jour directement le stock
                 prod.setCurrentStock(prod.getCurrentStock() + bottlesToRestore);
                 productRepo.save(prod);
 
             });
         }
 
-        // persistance et mapping en DTO
-        Order saved = orderRepo.save(order);
+         Order saved = orderRepo.save(order);
         return toDto(saved);
     }
 }

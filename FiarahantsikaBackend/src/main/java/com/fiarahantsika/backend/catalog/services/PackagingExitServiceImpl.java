@@ -9,7 +9,8 @@ import com.fiarahantsika.backend.catalog.repositories.PackagingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.time.Instant;
 import java.util.List;
 
@@ -37,11 +38,9 @@ public class PackagingExitServiceImpl implements IPackagingExitService {
             );
         }
 
-        // Mettre à jour le stock courant
         pkg.setCurrentStock(pkg.getCurrentStock() - qty);
         packagingRepo.save(pkg);
 
-        // Créer et sauver le mouvement de sortie
         PackagingExit ex = new PackagingExit();
         ex.setPackaging(pkg);
         ex.setQuantity(qty);
@@ -49,7 +48,6 @@ public class PackagingExitServiceImpl implements IPackagingExitService {
         ex.setRemainingStock(pkg.getCurrentStock());
         PackagingExit saved = exitRepo.save(ex);
 
-        // Retourner le DTO enrichi du stock restant
         return toDto(saved, pkg.getCurrentStock());
     }
 
@@ -72,5 +70,15 @@ public class PackagingExitServiceImpl implements IPackagingExitService {
                 e.getExitDate(),
                 e.getRemainingStock()
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PackagingExitDTO> getExitsPage(Long packagingId, Pageable pageable) {
+        return (packagingId != null)
+                ? exitRepo.findByPackagingId(packagingId, pageable)
+                .map(e -> toDto(e, e.getPackaging().getCurrentStock()))
+                : exitRepo.findAll(pageable)
+                .map(e -> toDto(e, e.getPackaging().getCurrentStock()));
     }
 }

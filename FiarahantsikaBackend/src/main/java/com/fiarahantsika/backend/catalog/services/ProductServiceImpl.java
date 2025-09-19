@@ -1,13 +1,15 @@
 package com.fiarahantsika.backend.catalog.services;
 
 import com.fiarahantsika.backend.catalog.dto.ProductDTO;
+import com.fiarahantsika.backend.catalog.dto.StockExitDTO;
 import com.fiarahantsika.backend.catalog.entities.Product;
 import com.fiarahantsika.backend.catalog.mappers.ProductMapper;
 import com.fiarahantsika.backend.catalog.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @Service
@@ -56,6 +58,12 @@ public class ProductServiceImpl implements IProductService {
     @Override
     public void deleteProduct(Long id) {
         repo.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductDTO> getProductsPage(Pageable pageable) {
+        return repo.findAll(pageable).map(ProductMapper::toDto);
     }
 }
 
