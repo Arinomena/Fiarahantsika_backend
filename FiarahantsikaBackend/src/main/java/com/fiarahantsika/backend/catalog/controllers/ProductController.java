@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/catalog/products")
@@ -21,9 +24,14 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<?> list(@RequestParam(required = false) String search) {
         try {
-            return ResponseEntity.ok(service.getProducts(search));
+            List<ProductDTO> products = service.getProducts(search);
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Liste des produits récupérée avec succès");
+            body.put("data", products);
+            return ResponseEntity.ok(body);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Erreur interne du serveur"));
         }
     }
 
@@ -32,11 +40,16 @@ public class ProductController {
         try {
             ProductDTO dto = service.getProductById(id);
             if (dto == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Produit introuvable");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Produit introuvable"));
             }
-            return ResponseEntity.ok(dto);
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Produit récupéré avec succès");
+            body.put("data", dto);
+            return ResponseEntity.ok(body);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Erreur interne du serveur"));
         }
     }
 
@@ -44,22 +57,33 @@ public class ProductController {
     public ResponseEntity<?> create(@RequestBody ProductDTO dto) {
         try {
             ProductDTO created = service.createProduct(dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Produit créé avec succès");
+            body.put("data", created);
+            return ResponseEntity.status(HttpStatus.CREATED).body(body);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Données invalides");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Données invalides"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Erreur interne du serveur"));
         }
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody ProductDTO dto) {
         try {
-            return ResponseEntity.ok(service.updateProduct(id, dto));
+            ProductDTO updated = service.updateProduct(id, dto);
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Produit mis à jour avec succès");
+            body.put("data", updated);
+            return ResponseEntity.ok(body);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Données invalides");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Données invalides"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Erreur interne du serveur"));
         }
     }
 
@@ -67,9 +91,15 @@ public class ProductController {
     public ResponseEntity<?> delete(@PathVariable Long id) {
         try {
             service.deleteProduct(id);
-            return ResponseEntity.noContent().build();
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Produit supprimé avec succès");
+            return ResponseEntity.ok(body);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Produit introuvable"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Erreur interne du serveur"));
         }
     }
 
@@ -81,10 +111,14 @@ public class ProductController {
         try {
             Pageable pageable = PageRequest.of(page, size);
             Page<ProductDTO> result = service.getProductsPage(pageable);
-            return ResponseEntity.ok(result);
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "Liste paginée des produits récupérée avec succès");
+            body.put("content", result.getContent());
+            body.put("totalPages", result.getTotalPages());
+            return ResponseEntity.ok(body);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Erreur interne du serveur"));
         }
     }
-
 }

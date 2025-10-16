@@ -5,6 +5,8 @@ import com.fiarahantsika.backend.clients.entities.Client;
 import com.fiarahantsika.backend.clients.mappers.ClientMapper;
 import com.fiarahantsika.backend.clients.repositories.ClientRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,5 +54,11 @@ public class ClientServiceImpl implements IClientService {
     @Override
     public void deleteClient(Long id) {
         repo.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ClientDTO> getClientsPage(Pageable pageable) {
+        return repo.findAll(pageable).map(ClientMapper::toDto);
     }
 }
