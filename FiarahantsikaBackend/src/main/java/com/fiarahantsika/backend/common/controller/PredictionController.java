@@ -64,7 +64,6 @@ public class PredictionController {
 
         MetricsResponse res = predictionGrpcClient.getMetrics(top, flop);
 
-        // Conversion en structure simple
         List<Map<String, Object>> metricsList = res.getMetricsList().stream()
                 .map(m -> {
                     Map<String, Object> map = new HashMap<>();
