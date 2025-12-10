@@ -5,11 +5,12 @@ import java.time.Instant;
 
 public record TreasuryTransactionDTO(
         Long id,
-        String type,
+        String type,          // CASH, Mobile, Banque, etc.
         Instant date,
         Long idUser,
         String description,
-        String categorie,
+        String categorie,     // VENTE, SALAIRE, ACHAT, PAYMENT, etc.
+        String direction,     // 🔹 ENTREE ou SORTIE
         BigDecimal montant,
         BigDecimal balanceAfter
 ) {}

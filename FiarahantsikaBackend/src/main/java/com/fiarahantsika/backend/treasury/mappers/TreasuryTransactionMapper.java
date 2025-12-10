@@ -15,6 +15,7 @@ public final class TreasuryTransactionMapper {
                 t.getIdUser(),
                 t.getDescription(),
                 t.getCategorie(),
+                t.getDirection(),
                 t.getMontant(),
                 t.getBalanceAfter()
         );
@@ -27,6 +28,7 @@ public final class TreasuryTransactionMapper {
         t.setIdUser(dto.idUser());
         t.setDescription(dto.description());
         t.setCategorie(dto.categorie());
+        t.setDirection(dto.direction());
         t.setMontant(dto.montant());
         t.setBalanceAfter(dto.balanceAfter());
         return t;
@@ -38,6 +40,7 @@ public final class TreasuryTransactionMapper {
         t.setIdUser(dto.idUser());
         t.setDescription(dto.description());
         t.setCategorie(dto.categorie());
+        t.setDirection(dto.direction());  
         t.setMontant(dto.montant());
         t.setBalanceAfter(dto.balanceAfter());
     }
