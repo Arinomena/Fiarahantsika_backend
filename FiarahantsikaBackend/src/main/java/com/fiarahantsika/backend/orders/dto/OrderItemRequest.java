@@ -8,7 +8,7 @@ public class OrderItemRequest {
     private ItemType itemType;
     private Integer quantity;
     private BigDecimal unitPrice;
-    private BigDecimal lineTotal;    
+    private BigDecimal lineTotal;
 
     // --- Getters & Setters ---
     public Long getItemId() {

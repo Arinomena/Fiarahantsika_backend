@@ -1,9 +1,11 @@
 package com.fiarahantsika.backend.orders.services;
 
+import com.fiarahantsika.backend.catalog.dto.CreateStockEntryRequest;
 import com.fiarahantsika.backend.catalog.dto.CreateStockExitRequest;
 import com.fiarahantsika.backend.catalog.entities.Product;
 import com.fiarahantsika.backend.catalog.repositories.PackagingRepository;
 import com.fiarahantsika.backend.catalog.services.IStockEntryService;
+import com.fiarahantsika.backend.common.enums.DestinationType;
 import com.fiarahantsika.backend.common.enums.ItemType;
 import com.fiarahantsika.backend.common.enums.OrderStatus;
 import com.fiarahantsika.backend.orders.dto.CreateOrderRequest;
@@ -32,6 +34,9 @@ import java.util.List;
 
 import static com.fiarahantsika.backend.orders.mappers.OrderMapper.toDto;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -47,8 +52,11 @@ public class OrderServiceImpl implements IOrderService {
     private final IPackagingExitService pkgExitSvc;
     private final PackagingRepository packagingRepo;
 
+
     @Override
     public OrderDTO createOrder(CreateOrderRequest req, String username) {
+        Logger log = LoggerFactory.getLogger(getClass());
+
         User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
 
@@ -72,9 +80,15 @@ public class OrderServiceImpl implements IOrderService {
         List<OrderItem> lines = OrderMapper.buildItems(order, req.getItems(), productRepo);
 
         lines.forEach(i -> {
-            if (i.getUnitPrice() != null && i.getQuantity() != null) {
-                i.setLineTotal(i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity())));
+            if (i.getUnitPrice() == null) {
+                throw new IllegalArgumentException("Prix unitaire manquant pour l'article " + i.getItemId());
             }
+            if (i.getQuantity() == null || i.getQuantity() <= 0) {
+                throw new IllegalArgumentException("Quantité invalide pour l'article " + i.getItemId());
+            }
+            i.setLineTotal(i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity())));
+            log.debug("Item {} type={} qty={} unitPrice={} lineTotal={}",
+                    i.getItemId(), i.getItemType(), i.getQuantity(), i.getUnitPrice(), i.getLineTotal());
         });
 
         order.setItems(lines);
@@ -89,11 +103,43 @@ public class OrderServiceImpl implements IOrderService {
             order.setTotal(total);
         }
 
+        if (req.getDestination() == DestinationType.FOURNISSEUR) {
+            lines.forEach(i -> {
+                Product prod = productRepo.findById(i.getItemId())
+                        .orElseThrow(() -> new IllegalArgumentException("Produit introuvable : " + i.getItemId()));
+
+                if (prod.getGroupSize() == null || prod.getGroupSize() <= 0) {
+                    throw new IllegalArgumentException("GroupSize invalide pour le produit " + prod.getId());
+                }
+
+                int qtyToAdd;
+                if (i.getItemType() == ItemType.PRODUCT) {
+                    qtyToAdd = i.getQuantity();
+                } else if (i.getItemType() == ItemType.GROUP) {
+                    qtyToAdd = i.getQuantity() * prod.getGroupSize();
+                } else {
+                    throw new IllegalArgumentException("Type d'article inconnu : " + i.getItemType());
+                }
+
+                if (qtyToAdd <= 0) {
+                    throw new IllegalArgumentException("Quantité calculée invalide pour le produit " + prod.getId());
+                }
+
+                log.debug("Stock update: product={} groupSize={} qty={} qtyToAdd={} currentStock(before)={}",
+                        prod.getId(), prod.getGroupSize(), i.getQuantity(), qtyToAdd, prod.getCurrentStock());
+
+                prod.setCurrentStock(prod.getCurrentStock() + qtyToAdd);
+                productRepo.save(prod);
+
+                stockEntrySvc.recordEntry(new CreateStockEntryRequest(prod.getId(), qtyToAdd));
+            });
+        }
+
         Order saved = orderRepo.save(order);
         itemRepo.saveAll(lines);
+        log.info("Order {} created with total={}", saved.getId(), saved.getTotal());
         return toDto(saved);
     }
-
 
     @Override
     @Transactional(readOnly = true)
