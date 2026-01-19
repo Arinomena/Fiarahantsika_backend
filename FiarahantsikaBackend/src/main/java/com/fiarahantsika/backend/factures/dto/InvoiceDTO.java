@@ -1,5 +1,6 @@
 package com.fiarahantsika.backend.factures.dto;
 
+import com.fiarahantsika.backend.common.enums.DestinationType;
 import com.fiarahantsika.backend.common.enums.InvoiceStatus;
 import com.fiarahantsika.backend.orders.dto.OrderItemDTO;
 import lombok.AllArgsConstructor;
@@ -22,5 +23,5 @@ public class InvoiceDTO {
     private LocalDate dueDate;
     private Instant createdAt;
     private BigDecimal paidAmount;
-    private BigDecimal dueAmount;
+    private BigDecimal dueAmount; private DestinationType destination;
 }

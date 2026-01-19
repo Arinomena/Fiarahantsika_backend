@@ -1,14 +1,16 @@
 package com.fiarahantsika.backend.orders.dto;
 
+import com.fiarahantsika.backend.common.enums.ItemType;
 import java.math.BigDecimal;
 
 public class OrderItemRequest {
     private Long itemId;
-    private int bottleQty;
-    private int crateQty;
+    private ItemType itemType;
+    private Integer quantity;
     private BigDecimal unitPrice;
-    private BigDecimal groupPrice;
+    private BigDecimal lineTotal;    
 
+    // --- Getters & Setters ---
     public Long getItemId() {
         return itemId;
     }
@@ -16,18 +18,18 @@ public class OrderItemRequest {
         this.itemId = itemId;
     }
 
-    public int getBottleQty() {
-        return bottleQty;
+    public ItemType getItemType() {
+        return itemType;
     }
-    public void setBottleQty(int bottleQty) {
-        this.bottleQty = bottleQty;
+    public void setItemType(ItemType itemType) {
+        this.itemType = itemType;
     }
 
-    public int getCrateQty() {
-        return crateQty;
+    public Integer getQuantity() {
+        return quantity;
     }
-    public void setCrateQty(int crateQty) {
-        this.crateQty = crateQty;
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 
     public BigDecimal getUnitPrice() {
@@ -37,10 +39,10 @@ public class OrderItemRequest {
         this.unitPrice = unitPrice;
     }
 
-    public BigDecimal getGroupPrice() {
-        return groupPrice;
+    public BigDecimal getLineTotal() {
+        return lineTotal;
     }
-    public void setGroupPrice(BigDecimal groupPrice) {
-        this.groupPrice = groupPrice;
+    public void setLineTotal(BigDecimal lineTotal) {
+        this.lineTotal = lineTotal;
     }
 }

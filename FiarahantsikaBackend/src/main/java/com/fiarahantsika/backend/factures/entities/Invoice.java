@@ -1,5 +1,6 @@
 package com.fiarahantsika.backend.factures.entities;
 
+import com.fiarahantsika.backend.common.enums.DestinationType;
 import com.fiarahantsika.backend.common.enums.InvoiceStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -33,6 +34,8 @@ public class Invoice {
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
     private InvoiceStatus status = InvoiceStatus.BROUILLON;
+
+    @Enumerated(EnumType.STRING) @Column(nullable = false) private DestinationType destination = DestinationType.CLIENT;
 
     private LocalDate dueDate;
 
@@ -99,4 +102,6 @@ public class Invoice {
     public void setPayments(List<Payment> payments) {
         this.payments = payments;
     }
+
+    public DestinationType getDestination() { return destination; } public void setDestination(DestinationType destination) { this.destination = destination; }
 }

@@ -10,6 +10,12 @@ public final class InvoiceMapper {
     private InvoiceMapper() {}
 
     public static InvoiceDTO toDto(Invoice i) {
+        BigDecimal paid = i.getPayments().stream()
+                .map(p -> p.getAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal due = i.getTotalAmount().subtract(paid);
+
         return new InvoiceDTO(
                 i.getId(),
                 i.getOrderId(),
@@ -17,13 +23,9 @@ public final class InvoiceMapper {
                 i.getStatus(),
                 i.getDueDate(),
                 i.getCreatedAt(),
-                i.getPayments().stream()
-                        .map(p -> p.getAmount())
-                        .reduce(BigDecimal.ZERO, BigDecimal::add),
-                i.getTotalAmount().subtract(
-                        i.getPayments().stream()
-                                .map(p -> p.getAmount())
-                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                paid,
+                due,
+                i.getDestination()
         );
     }
 
@@ -33,6 +35,7 @@ public final class InvoiceMapper {
         i.setTotalAmount(dto.getTotalAmount());
         i.setStatus(dto.getStatus());
         i.setDueDate(dto.getDueDate());
+        i.setDestination(dto.getDestination());
         return i;
     }
 
@@ -41,5 +44,6 @@ public final class InvoiceMapper {
         i.setTotalAmount(dto.getTotalAmount());
         i.setStatus(dto.getStatus());
         i.setDueDate(dto.getDueDate());
+        i.setDestination(dto.getDestination());
     }
 }

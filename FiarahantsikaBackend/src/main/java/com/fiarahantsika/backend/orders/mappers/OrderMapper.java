@@ -18,7 +18,7 @@ public final class OrderMapper {
 
     private OrderMapper() {}
 
-    /** Crée les OrderItem à partir de la requête */
+    /** Construit les OrderItem à partir de la requête */
     public static List<OrderItem> buildItems(
             Order order,
             List<OrderItemRequest> requests,
@@ -31,44 +31,29 @@ public final class OrderMapper {
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Produit introuvable : " + req.getItemId()));
 
-            // packaging (cageots)
-            if (req.getCrateQty() > 0) {
-                BigDecimal priceGroup = product.getPricePerGroup();
-                BigDecimal lineTotal = priceGroup
-                        .multiply(BigDecimal.valueOf(req.getCrateQty()));
+            OrderItem line = new OrderItem();
+            line.setOrder(order);
+            line.setItemType(req.getItemType() != null ? req.getItemType() : ItemType.PRODUCT);
+            line.setItemId(req.getItemId());
+            line.setQuantity(req.getQuantity());
+            line.setUnitPrice(req.getUnitPrice() != null ? req.getUnitPrice() : product.getPricePerUnit());
 
-                OrderItem line = new OrderItem();
-                line.setOrder(order);
-                line.setItemType(ItemType.PACKAGING);
-                line.setItemId(product.getId());
-                line.setQuantity(req.getCrateQty());
-                line.setUnitPrice(priceGroup);
-                line.setLineTotal(lineTotal);
-
-                lines.add(line);
+            // ✅ si lineTotal est fourni par le front, on le prend, sinon on recalcule
+            if (req.getLineTotal() != null) {
+                line.setLineTotal(req.getLineTotal());
+            } else if (line.getUnitPrice() != null && line.getQuantity() != null) {
+                line.setLineTotal(line.getUnitPrice().multiply(BigDecimal.valueOf(line.getQuantity())));
+            } else {
+                line.setLineTotal(BigDecimal.ZERO);
             }
 
-            // produit à l’unité (bouteilles)
-            if (req.getBottleQty() > 0) {
-                BigDecimal priceUnit = product.getPricePerUnit();
-                BigDecimal lineTotal = priceUnit
-                        .multiply(BigDecimal.valueOf(req.getBottleQty()));
-
-                OrderItem line = new OrderItem();
-                line.setOrder(order);
-                line.setItemType(ItemType.PRODUCT);
-                line.setItemId(product.getId());
-                line.setQuantity(req.getBottleQty());
-                line.setUnitPrice(priceUnit);
-                line.setLineTotal(lineTotal);
-
-                lines.add(line);
-            }
+            lines.add(line);
         }
 
         return lines;
     }
 
+    /** Convertit une Order en OrderDTO */
     public static OrderDTO toDto(Order o) {
         var items = o.getItems().stream()
                 .map(OrderMapper::itemToDto)
@@ -81,10 +66,15 @@ public final class OrderMapper {
                 o.getCreatedAt(),
                 o.getTotal(),
                 o.getStatus(),
+                o.getDestination(),
+                o.getVolumeCl(),
+                o.getWeightKg(),
+                o.getEmballageFee(),
                 items
         );
     }
 
+    /** Convertit une OrderItem en OrderItemDTO */
     private static OrderItemDTO itemToDto(OrderItem i) {
         return new OrderItemDTO(
                 i.getItemType(),

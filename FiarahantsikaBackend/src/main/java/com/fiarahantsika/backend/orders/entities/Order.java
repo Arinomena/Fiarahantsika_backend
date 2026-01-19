@@ -1,6 +1,7 @@
 package com.fiarahantsika.backend.orders.entities;
 
 import com.fiarahantsika.backend.clients.entities.Client;
+import com.fiarahantsika.backend.common.enums.DestinationType;
 import com.fiarahantsika.backend.users.entities.User;
 import com.fiarahantsika.backend.common.enums.OrderStatus;
 import jakarta.persistence.*;
@@ -47,9 +48,25 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
+    @Setter
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DestinationType destination = DestinationType.CLIENT;
+
+    // ✅ Champs supplémentaires pour correspondre au DTO
+    @Setter
+    @Column(name = "volume_cl", precision = 38, scale = 2, nullable = true)
+    private BigDecimal volumeCl;
+
+    @Setter
+    @Column(name = "weight_kg", precision = 38, scale = 2, nullable = true)
+    private BigDecimal weightKg;
+
+    @Setter
+    @Column(name = "emballage_fee", precision = 38, scale = 2, nullable = true)
+    private BigDecimal emballageFee;
 
     public void setItems(List<OrderItem> newItems) {
-
         this.items.clear();
         if (newItems != null) {
             for (OrderItem i : newItems) {

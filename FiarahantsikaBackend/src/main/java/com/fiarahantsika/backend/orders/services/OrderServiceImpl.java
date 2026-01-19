@@ -61,26 +61,39 @@ public class OrderServiceImpl implements IOrderService {
         Order order = new Order();
         order.setCreatedAt(Instant.now());
         order.setDirectSale(req.isDirectSale());
-        order.setStatus(OrderStatus.ENREGISTREE);
+        order.setStatus(req.getStatus() != null ? req.getStatus() : OrderStatus.ENREGISTREE);
         order.setUser(user);
+        order.setDestination(req.getDestination());
         order.setClient(client);
+        order.setVolumeCl(req.getVolumeCl());
+        order.setWeightKg(req.getWeightKg());
+        order.setEmballageFee(req.getEmballageFee());
 
-        List<OrderItem> lines = OrderMapper.buildItems(
-                order,
-                req.getItems(),
-                productRepo
-        );
+        List<OrderItem> lines = OrderMapper.buildItems(order, req.getItems(), productRepo);
+
+        lines.forEach(i -> {
+            if (i.getUnitPrice() != null && i.getQuantity() != null) {
+                i.setLineTotal(i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity())));
+            }
+        });
+
         order.setItems(lines);
 
         BigDecimal total = lines.stream()
                 .map(OrderItem::getLineTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        order.setTotal(total);
+
+        if (req.getTotal() != null && req.getTotal().compareTo(BigDecimal.ZERO) > 0) {
+            order.setTotal(req.getTotal());
+        } else {
+            order.setTotal(total);
+        }
 
         Order saved = orderRepo.save(order);
         itemRepo.saveAll(lines);
         return toDto(saved);
     }
+
 
     @Override
     @Transactional(readOnly = true)

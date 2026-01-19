@@ -1,5 +1,6 @@
 package com.fiarahantsika.backend.orders.dto;
 
+import com.fiarahantsika.backend.common.enums.DestinationType;
 import com.fiarahantsika.backend.common.enums.OrderStatus;
 
 import java.math.BigDecimal;
@@ -13,5 +14,9 @@ public record OrderDTO(
         Instant createdAt,
         BigDecimal total,
         OrderStatus status,
+        DestinationType destination,
+        BigDecimal volumeCl,
+        BigDecimal weightKg,
+        BigDecimal emballageFee,
         List<OrderItemDTO> items
 ){}

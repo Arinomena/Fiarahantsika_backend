@@ -59,7 +59,8 @@ class InvoiceServiceImpl implements IInvoiceService {
                 saved.getDueDate(),
                 saved.getCreatedAt(),
                 paid,
-                due
+                due,
+                inv.getDestination()
         );
     }
 
@@ -82,7 +83,8 @@ class InvoiceServiceImpl implements IInvoiceService {
                 inv.getDueDate(),
                 inv.getCreatedAt(),
                 paid,
-                due
+                due,
+                inv.getDestination()
         );
     }
 
@@ -103,7 +105,8 @@ class InvoiceServiceImpl implements IInvoiceService {
                             inv.getDueDate(),
                             inv.getCreatedAt(),
                             paid,
-                            due
+                            due,
+                            inv.getDestination()
                     );
                 })
                 .toList();

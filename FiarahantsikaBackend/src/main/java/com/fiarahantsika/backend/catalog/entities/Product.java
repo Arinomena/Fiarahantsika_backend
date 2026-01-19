@@ -24,6 +24,8 @@ public class Product {
 
     private String name;
 
+    private String categorie;
+
     @Column(name = "price_per_group", precision = 38, scale = 2)
     private BigDecimal pricePerGroup;
 
@@ -32,6 +34,15 @@ public class Product {
 
     @Column(precision = 38, scale = 2)
     private BigDecimal quantity;
+
+    @Column(name = "volume_cl", precision = 10, scale = 2)
+    private BigDecimal volumeCl;
+
+    @Column(name = "weight_kg", precision = 10, scale = 2)
+    private BigDecimal weightKg;
+
+    @Column(name = "emballage_fee", precision = 10, scale = 2)
+    private BigDecimal emballageFee;
 
     @Column(name = "current_stock", nullable = false)
     private Integer currentStock = 0;
@@ -49,94 +60,56 @@ public class Product {
     private Integer seuil = 0;
 
 
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
+    // --- Getters & Setters existants + nouveaux ---
 
-    public String getAbbreviation() {
-        return abbreviation;
-    }
-    public void setAbbreviation(String abbreviation) {
-        this.abbreviation = abbreviation;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Format getFormat() {
-        return format;
-    }
-    public void setFormat(Format format) {
-        this.format = format;
-    }
+    public String getAbbreviation() { return abbreviation; }
+    public void setAbbreviation(String abbreviation) { this.abbreviation = abbreviation; }
 
-    public GroupType getGroupType() {
-        return groupType;
-    }
-    public void setGroupType(GroupType groupType) {
-        this.groupType = groupType;
-    }
+    public Format getFormat() { return format; }
+    public void setFormat(Format format) { this.format = format; }
 
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
+    public GroupType getGroupType() { return groupType; }
+    public void setGroupType(GroupType groupType) { this.groupType = groupType; }
 
-    public BigDecimal getPricePerGroup() {
-        return pricePerGroup;
-    }
-    public void setPricePerGroup(BigDecimal pricePerGroup) {
-        this.pricePerGroup = pricePerGroup;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public BigDecimal getPricePerUnit() {
-        return pricePerUnit;
-    }
-    public void setPricePerUnit(BigDecimal pricePerUnit) {
-        this.pricePerUnit = pricePerUnit;
-    }
+    public String getCategorie() { return categorie; }
+    public void setCategorie(String categorie) { this.categorie = categorie; }
 
-    public BigDecimal getQuantity() {
-        return quantity;
-    }
-    public void setQuantity(BigDecimal quantity) {
-        this.quantity = quantity;
-    }
+    public BigDecimal getPricePerGroup() { return pricePerGroup; }
+    public void setPricePerGroup(BigDecimal pricePerGroup) { this.pricePerGroup = pricePerGroup; }
 
-    public Integer getCurrentStock() {
-        return currentStock;
-    }
-    public void setCurrentStock(Integer currentStock) {
-        this.currentStock = currentStock;
-    }
+    public BigDecimal getPricePerUnit() { return pricePerUnit; }
+    public void setPricePerUnit(BigDecimal pricePerUnit) { this.pricePerUnit = pricePerUnit; }
 
-    public BigDecimal getPricePerUnitSupplier() {
-        return pricePerUnitSupplier;
-    }
-    public void setPricePerUnitSupplier(BigDecimal pricePerUnitSupplier) {
-        this.pricePerUnitSupplier = pricePerUnitSupplier;
-    }
+    public BigDecimal getQuantity() { return quantity; }
+    public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
 
-    public BigDecimal getPricePerGroupSupplier() {
-        return pricePerGroupSupplier;
-    }
-    public void setPricePerGroupSupplier(BigDecimal pricePerGroupSupplier) {
-        this.pricePerGroupSupplier = pricePerGroupSupplier;
-    }
+    public BigDecimal getVolumeCl() { return volumeCl; }
+    public void setVolumeCl(BigDecimal volumeCl) { this.volumeCl = volumeCl; }
 
-    public Integer getGroupSize() {
-        return groupSize;
-    }
-    public void setGroupSize(Integer groupSize) {
-        this.groupSize = groupSize;
-    }
+    public BigDecimal getWeightKg() { return weightKg; }
+    public void setWeightKg(BigDecimal weightKg) { this.weightKg = weightKg; }
 
-    public Integer getSeuil() {
-        return seuil;
-    }
-    public void setSeuil(Integer seuil) {
-        this.seuil = seuil;
-    }
+    public BigDecimal getEmballageFee() { return emballageFee; }
+    public void setEmballageFee(BigDecimal emballageFee) { this.emballageFee = emballageFee; }
+
+    public Integer getCurrentStock() { return currentStock; }
+    public void setCurrentStock(Integer currentStock) { this.currentStock = currentStock; }
+
+    public BigDecimal getPricePerUnitSupplier() { return pricePerUnitSupplier; }
+    public void setPricePerUnitSupplier(BigDecimal pricePerUnitSupplier) { this.pricePerUnitSupplier = pricePerUnitSupplier; }
+
+    public BigDecimal getPricePerGroupSupplier() { return pricePerGroupSupplier; }
+    public void setPricePerGroupSupplier(BigDecimal pricePerGroupSupplier) { this.pricePerGroupSupplier = pricePerGroupSupplier; }
+
+    public Integer getGroupSize() { return groupSize; }
+    public void setGroupSize(Integer groupSize) { this.groupSize = groupSize; }
+
+    public Integer getSeuil() { return seuil; }
+    public void setSeuil(Integer seuil) { this.seuil = seuil; }
 }
