@@ -18,5 +18,8 @@ public record ProductDTO(
         BigDecimal pricePerUnitSupplier,
         BigDecimal pricePerGroupSupplier,
         Integer   groupSize,
-        Integer   seuil
+        Integer   seuil,
+        BigDecimal weightKg,
+        BigDecimal volumeCl,
+        String categorie
 ) {}

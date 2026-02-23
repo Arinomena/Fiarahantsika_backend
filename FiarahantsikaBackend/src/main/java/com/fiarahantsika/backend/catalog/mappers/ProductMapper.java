@@ -8,6 +8,7 @@ public final class ProductMapper {
     private ProductMapper() { /* utilitaire */ }
 
     public static ProductDTO toDto(Product p) {
+        if (p == null) return null;
         return new ProductDTO(
                 p.getId(),
                 p.getAbbreviation(),
@@ -21,27 +22,22 @@ public final class ProductMapper {
                 p.getPricePerUnitSupplier(),
                 p.getPricePerGroupSupplier(),
                 p.getGroupSize(),
-                p.getSeuil()
+                p.getSeuil(),
+                p.getWeightKg(),
+                p.getVolumeCl(),
+                p.getCategorie()
         );
     }
 
     public static Product toEntity(ProductDTO dto) {
+        if (dto == null) return null;
         Product p = new Product();
-        p.setAbbreviation(dto.abbreviation());
-        p.setGroupType(dto.groupType());
-        p.setName(dto.name());
-        p.setFormat(dto.format());
-        p.setPricePerUnit(dto.pricePerUnit());
-        p.setPricePerGroup(dto.pricePerGroup());
-        p.setQuantity(dto.quantity());
-        p.setPricePerUnitSupplier(dto.pricePerUnitSupplier());
-        p.setPricePerGroupSupplier(dto.pricePerGroupSupplier());
-        p.setGroupSize(dto.groupSize());
-        p.setSeuil(dto.seuil());
+        updateEntity(dto, p);
         return p;
     }
 
     public static void updateEntity(ProductDTO dto, Product p) {
+        if (dto == null || p == null) return;
         p.setAbbreviation(dto.abbreviation());
         p.setGroupType(dto.groupType());
         p.setName(dto.name());
@@ -53,5 +49,8 @@ public final class ProductMapper {
         p.setPricePerGroupSupplier(dto.pricePerGroupSupplier());
         p.setGroupSize(dto.groupSize());
         p.setSeuil(dto.seuil());
+        p.setWeightKg(dto.weightKg());
+        p.setVolumeCl(dto.volumeCl());
+        p.setCategorie(dto.categorie());
     }
 }

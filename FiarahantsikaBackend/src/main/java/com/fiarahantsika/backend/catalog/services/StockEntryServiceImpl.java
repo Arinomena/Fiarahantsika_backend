@@ -32,20 +32,19 @@ public class StockEntryServiceImpl implements IStockEntryService {
 
         int groups = req.quantity();
         if (groups <= 0) {
-            throw new IllegalArgumentException("quantity doit être > 0");
+            throw new IllegalArgumentException("La quantité doit être supérieure à 0");
         }
 
-        int sizePerGroup = p.getGroupSize();
-        int bottlesToAdd = groups * sizePerGroup;
-
-        p.setCurrentStock(p.getCurrentStock() + bottlesToAdd);
-        productRepo.save(p);
+        int sizePerGroup = (p.getGroupSize() != null) ? p.getGroupSize() : 1;
+        int bottlesCalculated = groups * sizePerGroup;
 
         StockEntry e = new StockEntry();
         e.setProduct(p);
         e.setQuantity(groups);
         e.setEntryDate(Instant.now());
+
         e.setRemainingStock(p.getCurrentStock());
+
         StockEntry saved = entryRepo.save(e);
 
         alertService.resolveAlert(p.getId());
@@ -54,7 +53,7 @@ public class StockEntryServiceImpl implements IStockEntryService {
                 saved.getId(),
                 p.getId(),
                 groups,
-                bottlesToAdd,     // bottleQty
+                bottlesCalculated,
                 saved.getEntryDate(),
                 p.getCurrentStock()
         );
@@ -68,21 +67,7 @@ public class StockEntryServiceImpl implements IStockEntryService {
                 : entryRepo.findAll();
 
         return entities.stream()
-                .map(e -> {
-                    int groups        = e.getQuantity();
-                    int sizePerGroup  = e.getProduct().getGroupSize();
-                    int bottles       = groups * sizePerGroup;
-                    int remainingStock = e.getProduct().getCurrentStock();  // ← déclaration
-
-                    return new StockEntryDTO(
-                            e.getId(),
-                            e.getProduct().getId(),
-                            groups,
-                            bottles,
-                            e.getEntryDate(),
-                            remainingStock                                    // ← passe la variable
-                    );
-                })
+                .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
@@ -93,20 +78,21 @@ public class StockEntryServiceImpl implements IStockEntryService {
                 ? entryRepo.findByProductId(productId, pageable)
                 : entryRepo.findAll(pageable);
 
-        return pageResult.map(e -> {
-            int groups         = e.getQuantity();
-            int sizePerGroup   = e.getProduct().getGroupSize();
-            int bottles        = groups * sizePerGroup;
-            int remainingStock = e.getProduct().getCurrentStock();
+        return pageResult.map(this::mapToDTO);
+    }
 
-            return new StockEntryDTO(
-                    e.getId(),
-                    e.getProduct().getId(),
-                    groups,
-                    bottles,
-                    e.getEntryDate(),
-                    remainingStock
-            );
-        });
+    private StockEntryDTO mapToDTO(StockEntry e) {
+        int groups = e.getQuantity();
+        int size = (e.getProduct().getGroupSize() != null) ? e.getProduct().getGroupSize() : 1;
+        int bottles = groups * size;
+
+        return new StockEntryDTO(
+                e.getId(),
+                e.getProduct().getId(),
+                groups,
+                bottles,
+                e.getEntryDate(),
+                e.getRemainingStock()
+        );
     }
 }
