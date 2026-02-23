@@ -12,9 +12,10 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      - name: Build and Push
+      - name: Build and Push Backend
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./FiarahantsikaBackend
+          file: ./FiarahantsikaBackend/Dockerfile
           push: true
           tags: arinomena/fiarahantsika-backend:latest
