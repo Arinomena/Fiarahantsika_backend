@@ -11,11 +11,13 @@ spring:
     url: jdbc:mysql://localhost:3306/fiarahantsika_dev?useSSL=false&serverTimezone=UTC
     username: root
     password: changeme
-    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 
 ---
 spring:
@@ -23,12 +25,12 @@ spring:
     activate:
       on-profile: prod
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
+    url: ${DB_URL:jdbc:mysql://fiarahantsikadev-nomena-feed.i.aivencloud.com:24502/defaultdb?ssl-mode=REQUIRED}
+    username: ${DB_USER:avnadmin}
     password: ${DB_PASS}
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
 
 ---
@@ -40,3 +42,7 @@ grpc:
 
 server:
   port: 8080
+
+logging:
+  level:
+    com.fiarahantsika.backend.order: DEBUG
